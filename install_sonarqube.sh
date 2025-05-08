@@ -9,7 +9,7 @@
 set -e
 
 SONAR_VERSION=7.8
-SONAR _USER=sonar
+SONAR_USER=sonar
 SONAR_DIR=/opt/sonarqube
 JAVA_PACKAGE=java-1.8.0-openjdk-devel
 
