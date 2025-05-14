@@ -23,16 +23,15 @@ CORE_TGZ="apache-tomcat-${TOMCAT_VERSION}.tar.gz"
 CORE_ASC="${CORE_TGZ}.asc"
 CORE_SHA="${CORE_TGZ}.sha512"
 
-#### 2) INSTALL JAVA 17+ ####
-echo "==> Installing Java 17+..."
-if grep -qEi 'amazon linux' /etc/os-release; then
-  yum install -y java-17-amazon-corretto-headless
-else
-  yum install -y java-17-openjdk-headless gnupg2
-fi
+#### 2) INSTALL JAVA 17+ WITH JDK (for Red Hat) ####
+echo "==> Installing Java 17 OpenJDK with development tools (includes 'jar')..."
 
+sudo dnf install -y java-17-openjdk-devel
+
+# Auto-detect JAVA_HOME and export it
 export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
 echo "JAVA_HOME set to $JAVA_HOME"
+
 
 #### 3) CREATE tomcat USER & GROUP ####
 echo "==> Creating ${TOMCAT_USER} system user/group..."
