@@ -34,8 +34,6 @@ cd /tmp
 for F in apache-tomcat-${TOMCAT_VERSION}.tar.gz{,.sha512}; do
   [ -f "${F}" ] || wget -q "${BASE}/${F}"
 done
-
-# quick checksum (doesn’t abort on failure)
 sha512sum -c "apache-tomcat-${TOMCAT_VERSION}.tar.gz.sha512" \
   || echo "⚠️ Checksum mismatch—continuing anyway"
 
@@ -49,7 +47,16 @@ find /opt/tomcat -type d -exec chmod 750 {} +
 find /opt/tomcat -type f -exec chmod 640 {} +
 chmod +x /opt/tomcat/bin/*.sh
 
-# 8) SYSTEMD UNIT
+# ────────────────────────────────────────────────────────────────────────────────
+#  Let ec2-user traverse & read /opt/tomcat
+# ────────────────────────────────────────────────────────────────────────────────
+# 8) Add ec2-user to tomcat group
+usermod -aG tomcat ec2-user
+
+# 9) Ensure group 'execute' (traverse) on all dirs under /opt/tomcat
+find /opt/tomcat -type d -exec chmod g+rx {} +
+
+# 10) SYSTEMD UNIT
 cat > /etc/systemd/system/tomcat.service <<'EOF'
 [Unit]
 Description=Apache Tomcat 11
@@ -72,11 +79,11 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-# 9) ENABLE & START
+# 11) ENABLE & START
 systemctl daemon-reload
 systemctl enable --now tomcat
 
-# 10) FINISH LINE
+# 12) FINISH LINE
 echo "✅ Tomcat ${TOMCAT_VERSION} deployed in /opt/tomcat"
 echo "👉 Check: systemctl status tomcat"
 echo "🔓 Don’t forget to open port 8080 in your SG!"
