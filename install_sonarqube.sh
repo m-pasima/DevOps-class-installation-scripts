@@ -7,13 +7,12 @@
 #   chmod +x install_sonarqube.sh
 #   sudo ./install_sonarqube.sh
 #
-
 set -e
 
 SONAR_VERSION=7.8
 SONAR_USER=sonar
 SONAR_DIR=/opt/sonarqube
-JAVA_PACKAGE=java-1.8.0-amazon-corretto-devel
+JAVA_PACKAGE=java-11-amazon-corretto-devel   # <-- Use Java 11 for better compatibility
 
 echo "🚀 Installing SonarQube $SONAR_VERSION on Amazon Linux..."
 
@@ -26,7 +25,7 @@ fi
 # 2. System update
 yum update -y
 
-# 3. Install Amazon Corretto 8 and tools
+# 3. Install Amazon Corretto 11 and tools
 yum install -y $JAVA_PACKAGE wget unzip git
 
 # 4. Verify Java version
