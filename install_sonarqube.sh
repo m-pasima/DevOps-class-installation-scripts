@@ -1,44 +1,45 @@
 #!/bin/bash
-
-# SonarQube 7.8 installation on RedHat 7/8
-# DevOps Academy Teaching Script (by Pasima)
-# Make it executable: chmod +x install_sonarqube.sh
-# Run as root or Sudo : sudo ./install_sonarqube.sh
-# Check the status with: sudo systemctl status sonarqube
+#
+# SonarQube 7.8 Install Script for Amazon Linux (AL2023 or AL2)
+# Author: Pasima (DevOps Academy)
+#
+# USAGE:
+#   chmod +x install_sonarqube.sh
+#   sudo ./install_sonarqube.sh
+#
 
 set -e
 
 SONAR_VERSION=7.8
 SONAR_USER=sonar
 SONAR_DIR=/opt/sonarqube
-JAVA_PACKAGE=java-1.8.0-openjdk-devel
+JAVA_PACKAGE=java-1.8.0-amazon-corretto-devel
 
-echo "🚀 Installing SonarQube $SONAR_VERSION on RedHat..."
+echo "🚀 Installing SonarQube $SONAR_VERSION on Amazon Linux..."
 
-# 1. Ensure running as root
+# 1. Must run as root
 if [ "$EUID" -ne 0 ]; then
-  echo "❌ Please run as root or with sudo"
+  echo "❌ Please run as root or with sudo."
   exit 1
 fi
 
-# 2. Update system
+# 2. System update
 yum update -y
 
-# 3. Install prerequisites
-yum install -y wget unzip git $JAVA_PACKAGE
+# 3. Install Amazon Corretto 8 and tools
+yum install -y $JAVA_PACKAGE wget unzip git
 
-# Verify Java version
+# 4. Verify Java version
 java -version
 
-# 4. Set Java environment globally
+# 5. Set JAVA_HOME system-wide
 JAVA_HOME=$(dirname $(dirname $(readlink $(readlink $(which java)))))
 echo "export JAVA_HOME=${JAVA_HOME}" > /etc/profile.d/java_home.sh
 echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile.d/java_home.sh
 source /etc/profile.d/java_home.sh
-
 echo "✅ JAVA_HOME set to $JAVA_HOME"
 
-# 5. Create sonar user if it doesn't exist
+# 6. Create sonar user if missing (never run as root!)
 if ! id $SONAR_USER &>/dev/null; then
     useradd $SONAR_USER
     echo "$SONAR_USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$SONAR_USER
@@ -48,7 +49,7 @@ else
     echo "⚠️ User '$SONAR_USER' already exists"
 fi
 
-# 6. Download SonarQube
+# 7. Download and extract SonarQube
 cd /opt
 if [ ! -d "$SONAR_DIR" ]; then
   wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-$SONAR_VERSION.zip
@@ -60,11 +61,11 @@ else
   echo "⚠️ $SONAR_DIR already exists"
 fi
 
-# 7. Adjust permissions
+# 8. Set permissions for SonarQube files
 chown -R $SONAR_USER:$SONAR_USER $SONAR_DIR
 chmod -R 775 $SONAR_DIR
 
-# 8. Set required sysctl params (for Elasticsearch)
+# 9. Configure system for Elasticsearch (SonarQube requirement)
 if ! grep -q vm.max_map_count /etc/sysctl.conf; then
   echo "vm.max_map_count=262144" >> /etc/sysctl.conf
   sysctl -w vm.max_map_count=262144
@@ -73,12 +74,19 @@ else
   echo "⚠️ vm.max_map_count already configured"
 fi
 
-# 9. Configure Java explicitly for SonarQube wrapper
+# 10. Set correct Java path in SonarQube wrapper config
 sed -i "/^#wrapper.java.command=/c\wrapper.java.command=$JAVA_HOME/bin/java" \
   $SONAR_DIR/conf/wrapper.conf
 echo "✅ SonarQube wrapper configured with Java path"
 
-# 10. Create systemd service (best practice)
+# 11. Open firewall port 9000 for SonarQube (if firewalld is running)
+if systemctl is-active --quiet firewalld; then
+  firewall-cmd --permanent --add-port=9000/tcp
+  firewall-cmd --reload
+  echo "✅ Opened firewall port 9000"
+fi
+
+# 12. Create systemd service for SonarQube
 cat <<EOF >/etc/systemd/system/sonarqube.service
 [Unit]
 Description=SonarQube service
@@ -98,11 +106,26 @@ LimitNPROC=4096
 WantedBy=multi-user.target
 EOF
 
-# Reload systemd and start SonarQube
+# 13. Start SonarQube
 systemctl daemon-reload
 systemctl enable sonarqube
 systemctl start sonarqube
+
+echo "⏳ Waiting 10 seconds for SonarQube to initialize..."
+sleep 10
 systemctl status sonarqube --no-pager
 
+PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4 || hostname -I | awk '{print $1}')
 echo "✅ SonarQube installation complete!"
-echo "🚀 Access SonarQube at: http://<server-ip>:9000 (Default: admin/admin)"
+echo "🚀 Access SonarQube at: http://$PRIVATE_IP:9000 (default: admin/admin)"
+
+# SELinux warning
+if command -v getenforce &>/dev/null && [ "$(getenforce)" = "Enforcing" ]; then
+  echo "⚠️ SELinux is enforcing. If SonarQube fails to start, set to permissive for testing: setenforce 0"
+fi
+
+echo "📚 Teaching notes:"
+echo "- This installs SonarQube with built-in H2 DB (for labs only)."
+echo "- For production, use external PostgreSQL DB and SonarQube LTS."
+echo "- Ensure your EC2 Security Group also allows port 9000 inbound."
+
