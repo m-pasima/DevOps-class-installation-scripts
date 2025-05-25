@@ -1,6 +1,10 @@
 #!/bin/bash
+## SonarQube 9.9 LTS Install for Amazon Linux 2023/2 (Java 17)
+# Author: Pasima (DevOps Academy)
 #
-# SonarQube 9.9 LTS Install for Amazon Linux 2023/2 (Java 17)
+# USAGE:
+#   chmod +x install_sonarqube.sh
+#   sudo ./install_sonarqube.sh
 #
 set -e
 
