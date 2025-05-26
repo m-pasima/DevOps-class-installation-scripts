@@ -1,7 +1,7 @@
-#!/bin/bash -xe
+#!/bin/bash -xe 
 #===============================================================================
-# install-tomcat11-userdata.sh
-# EC2 User-Data for Amazon RHEL 8 (also works on Amazon Linux 2)
+# install-tomcat11-userdata.sh 
+# EC2 User-Data for Amazon Linux 2023
 # Logs → /var/log/user-data.log
 #===============================================================================
 
@@ -11,8 +11,8 @@ exec &> >(tee /var/log/user-data.log)
 # 2) QUICK OS PATCH (optional)
 yum update -y
 
-# 3) INSTALL PREREQS
-yum install -y tar wget gnupg2 shadow-utils coreutils
+# 3) INSTALL PREREQS (removed conflicting gnupg2)
+yum install -y tar wget shadow-utils coreutils
 
 # 4) INSTALL AMAZON CORRETTO 17 (Java 17)
 CORRETTO_RPM="amazon-corretto-17-x64-linux-jdk.rpm"
@@ -47,9 +47,6 @@ find /opt/tomcat -type d -exec chmod 750 {} +
 find /opt/tomcat -type f -exec chmod 640 {} +
 chmod +x /opt/tomcat/bin/*.sh
 
-# ────────────────────────────────────────────────────────────────────────────────
-#  Let ec2-user traverse & read /opt/tomcat
-# ────────────────────────────────────────────────────────────────────────────────
 # 8) Add ec2-user to tomcat group
 usermod -aG tomcat ec2-user
 
@@ -86,4 +83,4 @@ systemctl enable --now tomcat
 # 12) FINISH LINE
 echo "✅ Tomcat ${TOMCAT_VERSION} deployed in /opt/tomcat"
 echo "👉 Check: systemctl status tomcat"
-echo "🔓 Don’t forget to open port 8080 in your SG!"
+echo "🔓 Don’t forget to open port 8080 in your Security Group!"
