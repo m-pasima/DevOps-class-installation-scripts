@@ -91,4 +91,4 @@ systemctl status sonarqube --no-pager
 echo ""
 echo "Check logs with: tail -f /opt/sonarqube/logs/sonar.log"
 PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4 || hostname -I | awk '{print $1}')
-echo "🚀 Access SonarQube at: http://$PRIVATE_IP:9000 (default: admin/admin)"
+echo "🚀 Access SonarQube at: http://$PRIVATE_IP:9000 (default passwd: admin/admin)"
