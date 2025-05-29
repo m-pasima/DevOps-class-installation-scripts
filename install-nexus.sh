@@ -7,7 +7,7 @@
 # 2. Run it with sudo
 #sudo ./install-nexus.sh
 # Requirements:
-#   • RHEL/CentOS 7, 8, or 9 (any systemd-based RPM distro should work)
+#   •Amazon Linux 2 (any systemd-based RPM distro should work)
 #   • 2 GB RAM minimum (4 GB+ recommended for production)
 #   • 2 CPU cores minimum
 #   • 10 GB free disk for binaries + data
