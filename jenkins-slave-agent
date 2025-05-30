@@ -1,0 +1,34 @@
+#!/bin/bash
+#Amazon Linux 2
+# Update system packages
+sudo yum update -y
+
+# Install required utilities
+sudo yum install -y tar wget
+
+# Go to /opt where we’ll install Java
+cd /opt
+
+# Download latest Java 21 tarball from Oracle
+sudo wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz
+
+# Extract the tarball
+sudo tar -xzvf jdk-21_linux-x64_bin.tar.gz
+
+# (Optional) Clean up tarball to save space
+sudo rm -f jdk-21_linux-x64_bin.tar.gz
+
+# Create a symbolic link to java binary for easy CLI access
+sudo ln -sf /opt/jdk-21*/bin/java /usr/bin/java
+
+# Set JAVA_HOME environment variable system-wide
+echo 'export JAVA_HOME=/opt/jdk-21' | sudo tee /etc/profile.d/java.sh
+
+# Add JAVA_HOME/bin to PATH system-wide
+echo 'export PATH=$JAVA_HOME/bin:$PATH' | sudo tee -a /etc/profile.d/java.sh
+
+# Load the new environment variables for the current session
+source /etc/profile.d/java.sh
+
+# (Optional) Print Java version to verify installation
+java -version
