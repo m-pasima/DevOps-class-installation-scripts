@@ -1,0 +1,31 @@
+#!/bin/bash
+# --- System update and utility install ---
+yum update -y
+yum install -y tar wget
+
+# --- Install Java 21 (Oracle JDK) ---
+cd /opt
+wget https://download.oracle.com/java/21/latest/jdk-21_linux-x64_bin.tar.gz
+tar -xzvf jdk-21_linux-x64_bin.tar.gz
+rm -f jdk-21_linux-x64_bin.tar.gz
+ln -sf /opt/jdk-21*/bin/java /usr/bin/java
+
+# --- Set JAVA_HOME and update PATH globally ---
+echo 'export JAVA_HOME=/opt/jdk-21' > /etc/profile.d/java.sh
+echo 'export PATH=$JAVA_HOME/bin:$PATH' >> /etc/profile.d/java.sh
+source /etc/profile.d/java.sh
+
+# --- Print Java version to confirm ---
+java -version
+
+# --- Create a dedicated Jenkins agent directory ---
+mkdir -p /home/ec2-user/jenkins
+cd /home/ec2-user/jenkins
+
+# --- Download the Jenkins agent jar from the controller ---
+wget http://<JENKINS_URL>:8080/jnlpJars/agent.jar
+
+# --- Start Jenkins agent (replace below with your actual values) ---
+# To auto-start on reboot, add this to rc.local or create a systemd service.
+# For now, this will run once after boot:
+nohup java -jar agent.jar -jnlpUrl http://<JENKINS_URL>:8080/computer/<AGENT_NAME>/jenkins-agent.jnlp -secret <AGENT_SECRET> -workDir "/home/ec2-user/jenkins" > agent.log 2>&1 &
