@@ -18,8 +18,9 @@ CORRETTO_RPM_URL="https://corretto.aws/downloads/latest/amazon-corretto-21-x64-l
 
 # Install Amazon Corretto 21 (OpenJDK 21)
 echo "Installing Amazon Corretto 21 (OpenJDK 21)..."
-#Install git, vim etc
-sudo yum install -y git vim tree
+#Install git, vim  maven etc
+sudo yum install -y git vim tree maven 
+
 # Download Corretto RPM
 sudo curl -sL -o /tmp/corretto-21.rpm "$CORRETTO_RPM_URL"
 # Install the RPM
