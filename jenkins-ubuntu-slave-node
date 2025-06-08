@@ -1,0 +1,70 @@
+#!/bin/bash
+# Requirements:
+# - Ubuntu EC2 instance (e.g., Ubuntu 20.04 or 22.04)
+# - Internet access to download Amazon Corretto 21 (OpenJDK 21)
+# - Root or sudo privileges
+# - SSH server (sshd) configured and running
+# - Jenkins master configured with SSH credentials and node settings
+# - Port 22 open in agent's security group for SSH from Jenkins master
+# - OpenJDK 21 required for Jenkins agent compatibility
+
+# Exit on error
+set -e
+
+# Variables
+WORK_DIR="/home/ubuntu/jenkins-agent"  # Agent workspace directory
+SSH_USER="ubuntu"                      # Default SSH user for Ubuntu
+CORRETTO_DEB_URL="https://corretto.aws/downloads/latest/amazon-corretto-21-x64-linux-jdk.deb"
+
+# Update package lists
+echo "Updating package lists..."
+sudo apt update
+
+# Install Amazon Corretto 21 (OpenJDK 21)
+echo "Installing Amazon Corretto 21 (OpenJDK 21)..."
+# Download Corretto DEB
+sudo curl -sL -o /tmp/corretto-21.deb "$CORRETTO_DEB_URL"
+# Install the DEB
+sudo apt install -y /tmp/corretto-21.deb
+# Install git
+sudo apt install -y git
+# Clean up
+rm -f /tmp/corretto-21.deb
+
+# Verify Java version
+java -version
+
+# Ensure SSH server is installed and running
+echo "Configuring SSH server..."
+sudo apt install -y openssh-server
+sudo systemctl enable ssh
+sudo systemctl start ssh
+
+# Check SSH server status
+sudo systemctl status ssh
+
+# Create Jenkins agent workspace directory
+echo "Creating Jenkins agent workspace at $WORK_DIR..."
+sudo mkdir -p "$WORK_DIR"
+sudo chown "$SSH_USER":"$SSH_USER" "$WORK_DIR"
+sudo chmod 700 "$WORK_DIR"
+
+# Ensure ubuntu user has proper SSH permissions
+echo "Configuring SSH permissions for $SSH_USER..."
+sudo mkdir -p /home/"$SSH_USER"/.ssh
+sudo chown "$SSH_USER":"$SSH_USER" /home/"$SSH_USER"/.ssh
+sudo chmod 700 /home/"$SSH_USER"/.ssh
+
+# Optional: Add Jenkins master's public key to authorized_keys (if using key-based auth)
+# Replace <jenkins-master-public-key> with the actual public key if needed
+# echo "<jenkins-master-public-key>" | sudo tee -a /home/"$SSH_USER"/.ssh/authorized_keys
+# sudo chown "$SSH_USER":"$SSH_USER" /home/"$SSH_USER"/.ssh/authorized_keys
+# sudo chmod 600 /home/"$SSH_USER"/.ssh/authorized_keys
+
+echo "Jenkins agent setup complete!"
+echo "Agent workspace: $WORK_DIR"
+echo "SSH user: $SSH_USER"
+echo "Next steps:"
+echo "1. Ensure port 22 is open in the agent's security group for the Jenkins master."
+echo "2. Configure the Jenkins master node with SSH credentials (username: $SSH_USER, private key)."
+echo "3. Launch the agent from the Jenkins UI at http://<jenkins-master-ip>:8080/computer/<node-name>"
