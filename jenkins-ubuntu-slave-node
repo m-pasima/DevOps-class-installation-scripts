@@ -1,12 +1,12 @@
 #!/bin/bash
 # Requirements:
 # - Ubuntu EC2 instance (e.g., Ubuntu 20.04 or 22.04)
-# - Internet access to download Amazon Corretto 21 (OpenJDK 21)
+# - Internet access to download Amazon Corretto 21 and Maven
 # - Root or sudo privileges
 # - SSH server (sshd) configured and running
 # - Jenkins master configured with SSH credentials and node settings
 # - Port 22 open in agent's security group for SSH from Jenkins master
-# - OpenJDK 21 required for Jenkins agent compatibility
+# - OpenJDK 21 and Maven required for Jenkins agent and pipeline
 
 # Exit on error
 set -e
@@ -22,17 +22,17 @@ sudo apt update
 
 # Install Amazon Corretto 21 (OpenJDK 21)
 echo "Installing Amazon Corretto 21 (OpenJDK 21)..."
-# Download Corretto DEB
 sudo curl -sL -o /tmp/corretto-21.deb "$CORRETTO_DEB_URL"
-# Install the DEB
 sudo apt install -y /tmp/corretto-21.deb
-# Install git
-sudo apt install -y git
-# Clean up
 rm -f /tmp/corretto-21.deb
 
-# Verify Java version
+# Install Maven
+echo "Installing Maven..."
+sudo apt install -y maven
+
+# Verify Java and Maven versions
 java -version
+mvn -version
 
 # Ensure SSH server is installed and running
 echo "Configuring SSH server..."
@@ -56,7 +56,6 @@ sudo chown "$SSH_USER":"$SSH_USER" /home/"$SSH_USER"/.ssh
 sudo chmod 700 /home/"$SSH_USER"/.ssh
 
 # Optional: Add Jenkins master's public key to authorized_keys (if using key-based auth)
-# Replace <jenkins-master-public-key> with the actual public key if needed
 # echo "<jenkins-master-public-key>" | sudo tee -a /home/"$SSH_USER"/.ssh/authorized_keys
 # sudo chown "$SSH_USER":"$SSH_USER" /home/"$SSH_USER"/.ssh/authorized_keys
 # sudo chmod 600 /home/"$SSH_USER"/.ssh/authorized_keys
