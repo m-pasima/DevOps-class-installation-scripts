@@ -1,0 +1,76 @@
+# Use as user data on Amazon Linux 2 to Deploy a simple webserver
+# Ensure port 80 (HTTP) is open on security groups
+#!/bin/bash
+set -e
+
+# Update all packages
+yum update -y
+
+# Install Apache HTTP Server
+yum install -y httpd
+
+# Start and enable Apache service
+systemctl start httpd
+systemctl enable httpd
+
+# Deploy your custom index.html (create a sample if not provided)
+cat > /var/www/html/index.html <<'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Server</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7e4;
+            color: #064e3b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+        header {
+            padding: 20px;
+            text-align: center;
+        }
+        footer {
+            background-color: #064e3b;
+            color: #f7f7e4;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+        }
+        .content {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Simple Web Server!</h1>
+    </header>
+    <div class="content">
+        <p>"Believe you can and you're halfway there." - Theodore Roosevelt</p>
+    </div>
+    <footer>
+        DevOps Academy @2025
+    </footer>
+</body>
+</html>
+EOF
+
+# Open port 80 in firewalld if running (usually off in AWS, but for completeness)
+if systemctl is-active --quiet firewalld; then
+    firewall-cmd --permanent --add-service=http
+    firewall-cmd --reload
+fi
+
+echo "Apache is installed, running, and your colorful web page is live!"
