@@ -1,0 +1,116 @@
+#!/bin/bash
+exec > /var/log/deploy_homepage.log 2>&1
+
+echo "===== Deploying Colorful Homepage ====="
+
+cat <<'EOF' > /usr/share/nginx/html/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to DevOps Class's Custom AMI, Deployed on Nginx Webserver 🚀</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #36d1c4, #5b86e5, #f7971e, #ffd200, #e100ff, #f7971e, #5b86e5);
+      background-size: 400% 400%;
+      animation: gradientBG 10s ease infinite;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .container {
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+      border-radius: 30px;
+      padding: 40px 60px;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      animation: fadeIn 2s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(50px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    h1 {
+      font-size: 3em;
+      margin-bottom: 0.5em;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      animation: popIn 1s;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    p {
+      font-size: 1.5em;
+      margin-top: 0.5em;
+      color: #f8f8f8;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.10);
+      animation: fadeIn 2.5s;
+    }
+    .ami-label {
+      margin-top: 2em;
+      display: inline-block;
+      padding: 0.6em 2em;
+      border-radius: 20px;
+      background: #fff;
+      color: #e100ff;
+      font-size: 1.1em;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(225,0,255,0.08);
+      letter-spacing: 1px;
+      border: 2px dashed #e100ff;
+      margin-bottom: 2em;
+    }
+    .btn {
+      margin-top: 2em;
+      padding: 0.8em 2em;
+      border: none;
+      border-radius: 40px;
+      background: #fff;
+      color: #5b86e5;
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(91,134,229,0.23);
+      transition: all 0.2s;
+      letter-spacing: 1px;
+      outline: none;
+    }
+    .btn:hover {
+      background: #36d1c4;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(54,209,196,0.20);
+      transform: scale(1.06) rotate(-2deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to DevOps Class's Custom AMI, Deployed on Nginx Webserver 🚀</h1>
+    <p>
+      This server was <b>auto-provisioned</b> using an EC2 User Data script.<br>
+      <span style="font-size:1.1em;">Enjoy the colorful vibes &amp; DevOps magic! ✨</span>
+    </p>
+    <div class="ami-label">
+      This webpage is served using a <b>personalized Nginx AMI</b>.<br>
+      (Custom Amazon Machine Image for rapid, repeatable DevOps deployments!)
+    </div>
+    <button class="btn" onclick="alert('DevOps & Cloud skills unlocked!')">Click me!</button>
+  </div>
+</body>
+</html>
+EOF
+
+echo "Homepage deployed."
