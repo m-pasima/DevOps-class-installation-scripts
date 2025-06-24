@@ -1,0 +1,14 @@
+#!/bin/bash
+# Log output for debugging if needed
+exec > /var/log/install_nginx.log 2>&1
+
+echo "===== PHASE 1: System Update and Nginx Install ====="
+
+# For Amazon Linux 2023
+dnf update -y
+dnf install -y nginx
+
+systemctl enable nginx
+systemctl start nginx
+
+echo "Nginx installation and startup complete."
