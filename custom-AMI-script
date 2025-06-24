@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # Log output for debugging if needed
 exec > /var/log/user-data.log 2>&1
@@ -94,12 +95,12 @@ cat <<'EOF' > /usr/share/nginx/html/index.html
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to Passy's Custom AMI 🚀</h1>
+    <h1>Welcome to DevOps Class's Custom AMI, Deployed on Nginx Webserver 🚀</h1>
     <p>
       This server was <b>auto-provisioned</b> using an EC2 User Data script.<br>
       <span style="font-size:1.1em;">Enjoy the colorful vibes &amp; DevOps magic! ✨</span>
     </p>
-    <button class="btn" onclick="alert('Cloud skills unlocked!')">Click me!</button>
+    <button class="btn" onclick="alert('DevOps & Cloud skills unlocked!')">Click me!</button>
   </div>
 </body>
 </html>
