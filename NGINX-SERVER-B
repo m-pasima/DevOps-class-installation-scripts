@@ -1,0 +1,121 @@
+#!/bin/bash
+exec > /var/log/deploy_homepage.log 2>&1
+
+echo "===== Deploying GREEN Homepage: SERVER B ====="
+
+# Install Nginx if not present
+yum install -y nginx || apt-get update && apt-get install -y nginx
+
+systemctl enable nginx
+systemctl start nginx
+
+cat <<'EOF' > /usr/share/nginx/html/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Server B - DevOPS Academy (GREEN)</title>
+  <style>
+    body {
+      background: linear-gradient(120deg, #11998e, #38ef7d, #76b852, #8DC26F);
+      background-size: 300% 300%;
+      animation: gradientBG 12s ease infinite;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .container {
+      background: rgba(255,255,255,0.15);
+      box-shadow: 0 8px 32px 0 rgba(34,139,34,0.30);
+      border-radius: 32px;
+      padding: 45px 65px;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      animation: fadeIn 2s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(50px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    h1 {
+      font-size: 2.7em;
+      margin-bottom: 0.5em;
+      letter-spacing: 2px;
+      color: #38ef7d;
+      text-shadow: 0 2px 8px rgba(34,139,34,0.25);
+    }
+    .ami-label {
+      margin: 2em 0;
+      display: inline-block;
+      padding: 0.6em 2.3em;
+      border-radius: 18px;
+      background: #fff;
+      color: #11998e;
+      font-size: 1.1em;
+      font-weight: bold;
+      border: 2px dashed #38ef7d;
+      box-shadow: 0 2px 8px rgba(34,139,34,0.11);
+      letter-spacing: 1px;
+    }
+    .btn {
+      margin-top: 2em;
+      padding: 0.8em 2.4em;
+      border: none;
+      border-radius: 50px;
+      background: #38ef7d;
+      color: #fff;
+      font-size: 1.15em;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(34,139,34,0.16);
+      transition: all 0.2s;
+      letter-spacing: 1px;
+      outline: none;
+    }
+    .btn:hover {
+      background: #11998e;
+      color: #38ef7d;
+      transform: scale(1.06) rotate(-2deg);
+    }
+    .footer {
+      margin-top: 3em;
+      font-size: 1em;
+      color: #d6fad6;
+      letter-spacing: 2px;
+      opacity: 0.85;
+      border-top: 1px solid #ffffff20;
+      padding-top: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>👋 This is SERVER B [Green]<br>Welcome to DevOPS Academy!</h1>
+    <p>
+      Served from <b>EC2 instance B</b> behind your load balancer.<br>
+      <span style="font-size:1.15em;">You're seeing the GREEN version. Ready for some fresh DevOps magic! 🌱</span>
+    </p>
+    <div class="ami-label">
+      Powered by <b>personalized Nginx AMI</b> <br>
+      <i>Auto-deployed for real-world DevOps demos</i>
+    </div>
+    <button class="btn" onclick="alert('Green Server B: DevOps journey begins!')">Click to Begin!</button>
+    <div class="footer">
+      — DevOPS Academy &copy; 2025 —
+    </div>
+  </div>
+</body>
+</html>
+EOF
+
+echo "Homepage deployed: SERVER B (GREEN)"
