@@ -1,5 +1,3 @@
-
-
 #!/bin/bash
 exec > /var/log/deploy_homepage.log 2>&1
 
