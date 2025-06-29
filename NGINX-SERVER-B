@@ -221,7 +221,7 @@ cat <<EOF > /usr/share/nginx/html/index.html
       </ul>
     </div>
     <div class="footer">
-      — DevOPS Academy © 2025 —
+      — DevOps Academy © 2025 —
     </div>
   </div>
 </body>
