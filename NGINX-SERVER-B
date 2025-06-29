@@ -1,23 +1,23 @@
 
+
 #!/bin/bash
 exec > /var/log/deploy_homepage.log 2>&1
 
 echo "===== Deploying GREEN Homepage: SERVER B ====="
 
-# Install Nginx if not present
-if command -v yum &>/dev/null; then
-    yum install -y nginx
-elif command -v apt-get &>/dev/null; then
-    apt-get update && apt-get install -y nginx
-fi
-
+# Install Nginx for Amazon Linux 2
+yum install -y epel-release
+yum install -y nginx
 systemctl enable nginx
 systemctl start nginx
+mkdir -p /usr/share/nginx/html
 
 # Get Instance Details
 PRIVATE_IP=$(hostname -I | awk '{print $1}')
 HOSTNAME=$(hostname)
 
+# Write HTML file
+echo "Writing HTML file to /usr/share/nginx/html/index.html..."
 cat <<EOF > /usr/share/nginx/html/index.html
 <!DOCTYPE html>
 <html lang="en">
@@ -231,3 +231,5 @@ cat <<EOF > /usr/share/nginx/html/index.html
 EOF
 
 echo "Homepage deployed: SERVER B (GREEN)"
+
+
