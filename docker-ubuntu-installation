@@ -1,0 +1,49 @@
+# Installs Docker CE for the 'ubuntu' user on Ubuntu using official Docker instructions.
+# create file : install_docker_ubuntu.sh
+#  Make executable : chmod +x install_docker_ubuntu.sh
+# Run ./install_docker_ubuntu.sh
+ 
+
+#!/bin/bash
+set -euo pipefail
+
+echo "🔄 [1/7] Updating apt index..."
+sudo apt-get update -y
+
+echo "🔧 [2/7] Installing dependencies..."
+sudo apt-get install -y ca-certificates curl
+
+echo "📁 [3/7] Creating keyrings directory for Docker GPG key..."
+sudo install -m 0755 -d /etc/apt/keyrings
+
+echo "🔑 [4/7] Downloading Docker's official GPG key..."
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+
+echo "🔒 [5/7] Setting permissions for Docker GPG key..."
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo "📦 [6/7] Adding Docker's APT repository..."
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo \"${UBUNTU_CODENAME:-$VERSION_CODENAME}\") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+echo "🔄 [7/7] Updating apt index after adding Docker repo..."
+sudo apt-get update -y
+
+echo "🐳 Installing Docker Engine, CLI, containerd, buildx, and compose plugin..."
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+echo "👤 Adding 'ubuntu' user to the docker group (for non-root Docker usage)..."
+sudo usermod -aG docker ubuntu
+
+echo "🛠️ Enabling and starting Docker..."
+sudo systemctl enable docker
+sudo systemctl start docker
+
+echo "✅ Docker installation complete!"
+echo "🔍 Docker version (as ubuntu user):"
+sudo -u ubuntu docker --version || echo "Log out and log in as 'ubuntu' to use Docker without sudo."
+
+echo -e "\n🚨 NOTE: Log out and back in as 'ubuntu', or reboot, to use Docker without sudo."
