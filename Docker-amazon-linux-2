@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# install_docker_amazonlinux2.sh
+# This script installs Docker CE on Amazon Linux 2.
+
+set -e
+
+echo "1. Updating system packages..."
+sudo yum update -y
+
+echo "2. Installing Docker..."
+sudo amazon-linux-extras install docker -y
+
+echo "3. Starting Docker service..."
+sudo systemctl start docker
+
+echo "4. Enabling Docker to start on boot..."
+sudo systemctl enable docker
+
+echo "5. Adding current user ($USER) to docker group (for non-root usage)..."
+sudo usermod -aG docker $USER
+
+echo "🎉 Docker installation completed on Amazon Linux 2! Please log out and log back in to use Docker without sudo."
+docker --version
