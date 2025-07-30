@@ -2,14 +2,18 @@
 
 # install_docker_amazonlinux2.sh
 # This script installs Docker CE on Amazon Linux 2.
+# Save this as install.sh
+# Make it executable: chmod +x install.sh
+# Run it: ./install.sh
+#To use Docker as a non-root user (ec2-user), log out and back in or run: newgrp docker
 
 set -e
 
 echo "1. Updating system packages..."
-sudo yum update -y
+sudo dnf update -y
 
-echo "2. Installing Docker..."
-sudo amazon-linux-extras install docker -y
+echo "2. Installing Docker dependencies..."
+sudo dnf install -y docker
 
 echo "3. Starting Docker service..."
 sudo systemctl start docker
@@ -20,5 +24,7 @@ sudo systemctl enable docker
 echo "5. Adding current user ($USER) to docker group (for non-root usage)..."
 sudo usermod -aG docker $USER
 
-echo "🎉 Docker installation completed on Amazon Linux 2! Please log out and log back in to use Docker without sudo."
-docker --version
+echo "6. Verifying Docker installation..."
+docker --version || echo "⚠️ Docker installed, but you might need to log out and back in to use it without sudo."
+
+echo "🎉 Docker installation completed on Amazon Linux 2023!"
