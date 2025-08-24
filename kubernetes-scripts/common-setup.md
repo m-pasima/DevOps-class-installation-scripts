@@ -1,47 +1,62 @@
-Common Setup for Kubernetes on Ubuntu EC2
-This script prepares an Ubuntu EC2 instance (control plane or worker node) for a Kubernetes cluster. It installs prerequisites, containerd, and Kubernetes components, setting the sandbox image to registry.k8s.io/pause:3.9 to prevent mismatches.
-Prerequisites
+# Common Setup for Kubernetes on Ubuntu EC2
 
-EC2 Instance:
-Control plane: t3.medium or better (2 vCPU, 4GB RAM).
-Worker nodes: t3.small or better.
-20GB+ root volume.
-Security groups allowing:
-6443 (API server)
-2379-2380 (etcd)
-10250-10259 (kubelet)
-179 (BGP for Calico)
-4789 (VXLAN for Calico, if used)
-22 (SSH)
+This prepares an Ubuntu EC2 instance (control plane **or** worker node) for a Kubernetes cluster. It installs prerequisites, containerd, and Kubernetes components, and sets the containerd sandbox image to `registry.k8s.io/pause:3.9` to prevent mismatches.
 
+---
 
-Nodes in the same VPC/subnet or with network connectivity.
+## Prerequisites
 
+### EC2 Instance
 
-System:
-Ubuntu 22.04 or 24.04 LTS.
-Internet access for package downloads.
-Run as root or with sudo.
-Swap disabled (handled by script).
+* **Control plane:** `t3.medium` or better (2 vCPU, 4 GB RAM)
+* **Workers:** `t3.small` or better
+* **Disk:** 20 GB+ root volume
+* **Security groups (ingress):**
 
+  * `6443` (Kubernetes API server)
+  * `2379-2380` (etcd)
+  * `10250-10259` (kubelet, components)
+  * `179` (BGP for Calico)
+  * `4789` (VXLAN for Calico, if used)
+  * `22` (SSH)
+* Nodes should be in the same VPC/subnet or have L3 connectivity.
 
-User:
-Assumes ubuntu user (default on EC2). Adjust paths for other users.
+### System
 
+* Ubuntu **22.04** or **24.04** LTS
+* Internet access for package downloads
+* Run as **root** or with **sudo**
+* Swap disabled (**script handles this**)
 
+### User
 
-How to Use
+* Assumes the default **`ubuntu`** user on EC2 (adjust paths if using another user)
 
-Save this as common-setup.sh in your repository.
-Make it executable:chmod +x common-setup.sh
+---
 
+## How to Use
 
-Run with sudo on all nodes:sudo ./common-setup.sh
+1. **Save** the script below as `common-setup.sh`
+2. **Make it executable:**
 
+   ```bash
+   chmod +x common-setup.sh
+   ```
+3. **Run on all nodes with sudo:**
 
-Next, use control-plane.md for the control plane or worker-join.md for worker nodes.
+   ```bash
+   sudo ./common-setup.sh
+   ```
+4. Next steps:
 
-Script
+   * Control plane: follow your `control-plane.md`
+   * Workers: follow your `worker-join.md`
+
+---
+
+## Script (copy & run)
+
+```bash
 #!/bin/bash
 
 # Update system packages
@@ -98,60 +113,83 @@ sudo apt-mark hold kubelet kubeadm kubectl
 sudo kubeadm config images pull --kubernetes-version=1.30.4
 
 echo "Common setup complete. Sandbox image set to pause:3.9. Proceed to control plane or worker setup."
+```
 
-What Each Command Does
+---
 
-System Updates:
-sudo apt update && sudo apt upgrade -y: Refreshes package lists and updates installed packages.
+## What Each Command Does (quick reference)
 
+* **System Updates**
 
-Required Tools:
-sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release: Installs utilities for secure downloads and repository management.
+  * `sudo apt update && sudo apt upgrade -y` — refresh & upgrade packages
+* **Required Tools**
 
+  * `apt-transport-https ca-certificates curl gnupg lsb-release` — repo & TLS utilities
+* **Swap Disable**
 
-Swap Disable:
-sudo swapoff -a: Turns off swap memory.
-sudo sed -i ...: Disables swap in /etc/fstab for reboots.
+  * `sudo swapoff -a` — turn off swap now
+  * `sed -i ... /etc/fstab` — keep swap off after reboot
+* **Kernel Modules**
 
+  * `/etc/modules-load.d/containerd.conf` — ensure `overlay` & `br_netfilter` load
+  * `modprobe overlay br_netfilter` — load immediately
+* **Network Settings**
 
-Kernel Modules:
-cat <<EOF ...: Adds overlay and br_netfilter modules for containerd networking.
-sudo modprobe ...: Loads these modules.
+  * `/etc/sysctl.d/99-kubernetes-cri.conf` — enable iptables on bridges & IP forwarding
+  * `sudo sysctl --system` — apply settings
+* **Containerd Setup**
 
+  * Add Docker’s GPG key & repo → `containerd.io` install
+  * `containerd config default` → write `/etc/containerd/config.toml`
+  * `SystemdCgroup = true` — required for kubelet + systemd
+  * `sandbox_image = "registry.k8s.io/pause:3.9"` — prevent image mismatch
+  * `systemctl restart/enable containerd` — start & persist
+* **Kubernetes Repository**
 
-Network Settings:
-cat <<EOF ...: Configures IPv4 forwarding and bridged traffic.
-sudo sysctl --system: Applies network settings.
+  * Add v1.30 apt repo & GPG key
+* **Kubernetes Components**
 
+  * Install **pinned** `kubelet`, `kubeadm`, `kubectl` **1.30.4-1.1**
+  * `apt-mark hold` — avoid accidental upgrades
+* **Image Pre-pull**
 
-Containerd Setup:
-curl ... | sudo gpg ...: Adds Docker’s GPG key.
-echo "deb ..." | sudo tee ...: Adds Docker’s repository.
-sudo apt install -y containerd.io: Installs containerd.
-containerd config default ...: Generates containerd configuration.
-sudo sed -i ... SystemdCgroup ...: Enables systemd cgroup for Kubernetes.
-sudo sed -i ... sandbox_image ...: Sets pause image to registry.k8s.io/pause:3.9.
-sudo systemctl restart/enable containerd: Restarts and enables containerd.
+  * `kubeadm config images pull --kubernetes-version=1.30.4` — cache images
 
+---
 
-Kubernetes Repository:
-curl ... | sudo gpg ...: Adds Kubernetes GPG key.
-echo 'deb ...' ...: Adds Kubernetes v1.30 repository.
+## Troubleshooting
 
+* **Package installation fails**
 
-Kubernetes Components:
-sudo apt install -y kubelet=1.30.4-1.1 ...: Installs pinned Kubernetes tools.
-sudo apt-mark hold ...: Locks versions to prevent upgrades.
+  * Check internet/DNS; re-run `sudo apt update`
+* **Containerd issues**
 
+  * Logs: `sudo journalctl -u containerd -f`
+* **Sandbox image mismatch**
 
-Image Pre-pull:
-sudo kubeadm config images pull ...: Downloads Kubernetes images in advance.
+  * Verify: `sudo crictl images | grep pause`
+  * Config file: `/etc/containerd/config.toml` should show `pause:3.9`
 
+---
 
+## Notes & Best Practices
 
-Troubleshooting
+* Keep **control plane** and **workers** on the **same minor version** (1.30.x) during setup.
+* If you later change Kubernetes versions, **update the apt repo** and **remove holds** selectively:
 
-Package installation fails: Check internet access; retry sudo apt update.
-Containerd issues: View logs with sudo journalctl -u containerd.
-Sandbox image mismatch: Confirm pause:3.9 in /etc/containerd/config.toml using sudo crictl images | grep pause.
+  ```bash
+  sudo apt-mark unhold kubelet kubeadm kubectl
+  sudo apt update
+  sudo apt install -y kubeadm=<new> kubelet=<new> kubectl=<new>
+  sudo apt-mark hold kubelet kubeadm kubectl
+  ```
+* After reboot, re-check:
+
+  ```bash
+  lsmod | grep br_netfilter
+  sysctl net.ipv4.ip_forward
+  systemctl status containerd
+  kubeadm version && kubectl version --client
+  ```
+
 
